@@ -9,7 +9,7 @@ Wrap for the photobleach backend code
 """
 
 
-from ph_bleach_backend_v2.1 import *
+from ph_bleach_backend_v2_1 import *
 import os
 
 
@@ -22,7 +22,7 @@ dt = 15/60                  # time interval between images (unit: minutes)
 # =============================================================================
 # Control parameter
 # =============================================================================
-exprt_data = 'y'                  # Export data to csv file y/n
+exprt_data = True                 # Export data to csv file True/False
 obj_detect_each_frame = False     # if True, then object is detected in every frame. 
                                   # if False, then object is detected in the first frame only
                                   # and is assumed to be stationary if every other frame. Setting False

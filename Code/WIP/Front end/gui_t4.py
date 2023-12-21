@@ -36,12 +36,16 @@ def print_values():
     print('printing')
     print(export_data.get())
     blur_order = spn_blur_order.get()
-    dpi_fig = spn_dpi_fig.get()
+    dpi = spn_dpi.get()
   
     # lb_temp = ttb.Label(output_frame, text = ent_block_size.get())
     
     lb_temp = ttb.Label(output_frame, text = 'Threshold type = ' + spn_th_type.get())
     lb_temp.pack()
+    
+    lb_temp = ttb.Label(output_frame, text = 'dt = ' + ent_dt.get())
+    lb_temp.pack()
+    
     
     lb_temp = ttb.Label(output_frame, text = 'Blur order = ' + str(blur_order))
     lb_temp.pack()
@@ -52,10 +56,10 @@ def print_values():
     lb_temp = ttb.Label(output_frame, text = 'Export data = ' + str(export_data.get()))
     lb_temp.pack()
 
-    lb_temp = ttb.Label(output_frame, text = 'Obj detect in each frame = ' + str(obj_detect_each_frame.get()))
+    lb_temp = ttb.Label(output_frame, text = 'Obj detect in each frame = ' + str(obj_det.get()))
     lb_temp.pack()
     
-    lb_temp = ttb.Label(output_frame, text = 'Smooth data = ' + str(smooth_data.get()))
+    lb_temp = ttb.Label(output_frame, text = 'Smooth data = ' + str(sm_data.get()))
     lb_temp.pack()
     
     lb_temp = ttb.Label(output_frame, text = 'Simple threshold = ' + str(mtr_th.amountusedvar.get()))
@@ -64,13 +68,17 @@ def print_values():
     lb_temp = ttb.Label(output_frame, text = 'Adaptive threshold = ' + str(mtr_adth.amountusedvar.get()))
     lb_temp.pack()
     
-    lb_temp = ttb.Label(output_frame, text = 'Fig. dip = ' + str(dpi_fig))
+    lb_temp = ttb.Label(output_frame, text = 'Object size (radial) threshold = ' + str(mtr_obth.amountusedvar.get()))
+    lb_temp.pack()
+    
+    lb_temp = ttb.Label(output_frame, text = 'Fig. dip = ' + str(dpi))
     lb_temp.pack()
     
     lb_temp = ttb.Label(output_frame, text = 'Savgol window = ' + ent_sv_window.get())
     lb_temp.pack()
 
-
+    lb_temp = ttb.Label(output_frame, text = 'Savgol order = ' + ent_sv_order.get())
+    lb_temp.pack()
 
 # depending on the threshold type, enable/disable some features
 def limit_input():
@@ -86,6 +94,46 @@ def limit_input():
 
 
 
+# run backend with parameter values from the widget
+def run_backend():
+    
+    path_dir = '/home/asif/Photobleach_data/'   # directory where the data files are
+    fname = 'M_15s.tif'
+    path = path_dir + fname
+    dt = float(ent_dt.get())  #dt = 15/60                  # time interval between images (unit: minutes)
+    
+    # =============================================================================
+    # Control parameter
+    # =============================================================================
+    exprt_data = export_data.get()           #exprt_data = True                  # Export data to csv file True/False
+    obj_detect_each_frame = obj_det.get()    # if True, then object is detected in every frame. 
+                                      # if False, then object is detected in the first frame only
+                                      # and is assumed to be stationary if every other frame. Setting False
+                                      # might be useful for noisy and low-light image.
+                                      
+    th_factor = float(mtr_th.amountusedvar.get())/100                     # th_factor = 0.6                   # For simple thresholding: Fraction of maximum brightness. Pixels having this brightness fraction is assumed to be part of the object
+    mean_th_fct = float(mtr_adth.amountusedvar.get())/100                 # mean_th_fct = 0.1                 # For 16 bit adaptive thresholding: percentage more than the block_mean required to be considered an object
+    
+    blur_order = int(spn_blur_order.get())       # blur_order = 5                    # Order of the median blur
+    block_size = int(ent_block_size.get())       # block_size = 41                   # block size for adaptive thresholding
+        
+    obj_size_th_factor = float(mtr_obth.amountusedvar.get()/100)**2                  # obj_size_th_factor = 0.1**2       # for composite mask from fragments, size (area) of object to include = max_size * obj_size_th_factor. The square is to convert length to area 
+    th_type = spn_th_type.get()              # th_type = 'adaptive16bit'         # thresholding function
+    smooth_data = sm_data.get()              # smooth_data = False                 # Smooth data y/n
+    savgol_window = int(ent_sv_window.get()) # savgol_window = 11                # parameters for the smoothing filter
+    savgol_order = int(ent_sv_order.get())   # savgol_order = 3                  # parameters for the smoothing filter
+    
+    test_img_ind = 0                  # test image frame to plot
+    dpi_fig = int(spn_dpi.get())      # dpi_fig  = 600                    # dpi of saved figures
+    # =============================================================================
+    
+    
+    # # https://note.nkmk.me/en/python-os-basename-dirname-split-splitext/
+    # dirname = os.path.dirname(path) + '/'
+    # print(dirname)
+    
+    main_run(path, dt, exprt_data, obj_detect_each_frame, th_factor, mean_th_fct, blur_order, block_size, obj_size_th_factor, th_type,
+              smooth_data, savgol_window, savgol_order, test_img_ind, dpi_fig)
 
 #control variables
 window_width = 800
@@ -121,10 +169,8 @@ output_frame.place(x=340,y=0,relheight=1,relwidth=.6 )
 # Define variables
 # =============================================================================
 export_data = ttb.BooleanVar(value = True)
-blur_order = ttb.IntVar()
-block_size = ttb.IntVar()
-obj_detect_each_frame = ttb.BooleanVar(value = False)
-smooth_data = ttb.BooleanVar(value = False)
+obj_det = ttb.BooleanVar(value = False)
+sm_data = ttb.BooleanVar(value = False)
 # =============================================================================
 
 
@@ -134,6 +180,15 @@ ent_block_size = ttb.Entry(ctrl_frame, bootstyle = 'primary')
 
 # ent2.delete(0,ttb.END)
 ent_block_size.insert(0,41)
+
+
+# Label+Entry pair
+lbl_dt= ttb.Label(ctrl_frame,text = 'Time step (min)', bootstyle = 'primary')
+ent_dt = ttb.Entry(ctrl_frame, bootstyle = 'primary')
+
+# ent2.delete(0,ttb.END)
+ent_dt.insert(0,0.25)
+
 # 
 # lbl_block_size.pack(side='left', pady = 20)
 # ent_block_size.pack(side='left', padx = 10)
@@ -162,8 +217,8 @@ chk_export_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle'
 
 
 
-chk_obj_detect_each_frame = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Obj det in each frame', variable = obj_detect_each_frame)
-chk_smooth_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Smooth data', variable = smooth_data)
+chk_obj_detect_each_frame = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Obj det in each frame', variable = obj_det)
+chk_sm_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Smooth data', variable = sm_data)
 
 
 mtr_th = ttb.Meter(ctrl_frame, bootstyle = 'secondary', 
@@ -190,12 +245,22 @@ mtr_adth = ttb.Meter(ctrl_frame, bootstyle = 'danger',
                     stepsize=1,
                     textfont='-size 10 -weight bold',)
 
+mtr_obth = ttb.Meter(ctrl_frame, bootstyle = 'warning', 
+                    subtext = 'Obj. size Th',
+                    interactive = True,
+                    stripethickness=10,
+                    meterthickness=8,
+                    metersize = 120,
+                    amounttotal = 50,
+                    amountused = 10,
+                    textright = '%',
+                    stepsize=1,
+                    textfont='-size 10 -weight bold',)
 
-
-lbl_dpi_fig = ttb.Label(ctrl_frame,  text = 'Fig dpi', bootstyle = 'primary')
-spn_dpi_fig = ttb.Spinbox(ctrl_frame, bootstyle = 'primary', from_=150, to = 600, increment=150, width = 17)
-spn_dpi_fig.insert(0,150)
-spn_dpi_fig.configure(state = 'readonly')
+lbl_dpi = ttb.Label(ctrl_frame,  text = 'Fig dpi', bootstyle = 'primary')
+spn_dpi = ttb.Spinbox(ctrl_frame, bootstyle = 'primary', from_=150, to = 600, increment=150, width = 17)
+spn_dpi.insert(0,150)
+spn_dpi.configure(state = 'readonly')
 
 
 lbl_sv_window= ttb.Label(ctrl_frame,text = 'Savgol Window', bootstyle = 'primary')
@@ -205,9 +270,11 @@ ent_sv_window.insert(0,11)
 
 lbl_sv_order= ttb.Label(ctrl_frame,text = 'Savgol Order', bootstyle = 'primary')
 ent_sv_order = ttb.Entry(ctrl_frame, bootstyle = 'primary')
-ent_sv_order.insert(0,11)
+ent_sv_order.insert(0,3)
 
 bt1 = ttb.Button(output_frame, text = 'Print', bootstyle = 'danger', command = print_values)
+
+bt2 = ttb.Button(output_frame, text = 'Run', bootstyle = 'success', command = run_backend)
 
 
 
@@ -235,6 +302,13 @@ lbl_block_size.pack(anchor='w',padx = 20)
 ent_block_size.pack(anchor='w', padx = 20,pady = 1)
 ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
 
+
+lbl_dt.pack(anchor='w',padx = 20)
+ent_dt.pack(anchor='w', padx = 20,pady = 1)
+ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+
+
+
 lbl_blur_order.pack(anchor='w', padx = 20)
 spn_blur_order.pack(anchor='w', padx = 20,pady = 1)
 ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
@@ -249,7 +323,7 @@ ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
                     
 chk_export_data.pack(padx = 20,anchor = 'w')
 chk_obj_detect_each_frame.pack(padx = 20,anchor = 'w')
-chk_smooth_data.pack(padx = 20,anchor = 'w')
+chk_sm_data.pack(padx = 20,anchor = 'w')
 
 
 ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
@@ -257,17 +331,21 @@ ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
 mtr_th.pack(pady = 30, anchor='w', padx = 10)
 ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
 mtr_adth.pack(anchor='w', padx = 10)
+ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+mtr_obth.pack(anchor='w', padx = 10)
+
 
 lbl_sv_window.pack(anchor='w',padx = 20)
 ent_sv_window.pack(anchor='w', padx = 20,pady = 1)
+lbl_sv_order.pack(anchor='w',padx = 20)
+ent_sv_order.pack(anchor='w', padx = 20,pady = 1)
 
 
-
-lbl_dpi_fig.pack(anchor='w', padx = 20)
-spn_dpi_fig.pack(anchor='w', padx = 20,pady = 1)
-
+lbl_dpi.pack(anchor='w', padx = 20)
+spn_dpi.pack(anchor='w', padx = 20,pady = 1)
 
 
+bt2.pack(padx = 10, pady = 20)
 bt1.pack(padx = 10, pady = 20)
 
 

@@ -277,15 +277,21 @@ def main_run(path, dt, exprt_data, obj_detect_each_frame, th_factor, mean_th_fct
     print_log('* Total duration = %1.2f minutes' % (frame_count*dt))
     
     print_log('Object detect in each frame = %r' %obj_detect_each_frame)
-    print_log('Smnooth data = %r' %smooth_data)
-    print_log('Threshold factor (for simple thresholding)= %f' % th_factor)
+    print_log('Export data = %r' %exprt_data)
+    
+   
+    print_log('Thresholding type = %s' % th_type) 
+    print_log('Threshold factor (for simple thresholding)= %1.2f' % th_factor)
     print_log('Blur order = %i' % blur_order)
     print_log('Block size (for adaptive thresholding) = %i' % block_size)
-    print_log('Mean threshold factor (for adaptive thresholding) = %f' % mean_th_fct)
-    print_log('Thresholding type = %s' % th_type)
+    print_log('Mean threshold factor (for adaptive thresholding) = %1.2f' % mean_th_fct)
+   
+    print_log('Smooth data = %r' %smooth_data)
+    print_log('Savgol window (for smoothing) = %i' %savgol_window)
+    print_log('Savgol order = %i' %savgol_order)
     
     
-    print_log('Object size thresholding factor (for mask refinement) = %f' % obj_size_th_factor)
+    print_log('Object size thresholding factor (for mask refinement) = %1.6f' % obj_size_th_factor)
     
     print_log('* Setting object intensity threshold to be %i%%  of maximum \n' % (100*th_factor))
     print_log('* Using %i rows to display the frames in the subplots' %N_plot_row)
@@ -385,7 +391,7 @@ def main_run(path, dt, exprt_data, obj_detect_each_frame, th_factor, mean_th_fct
     # =============================================================================
     # Export data
     # =============================================================================
-    if exprt_data == 'y':
+    if exprt_data == True:
         Mdata = np.transpose([t,sm_data, sm_data/np.max(sm_data)])
         col_names = ['time (min)','intensity', 'normalized intensity']
         df = pd.DataFrame(Mdata,columns=col_names)
