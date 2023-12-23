@@ -183,7 +183,10 @@ ctrl_width_fraction = 3/8
 # =============================================================================
 # root window
 # =============================================================================
+
+
 root = ttb.Window(themename="sandstone")
+
 root.title('Photobleaching Analysis from TIF image stack')
 root.geometry(("%dx%d+%d+%d" % (window_width, window_height, posx, posy)))
 
@@ -191,11 +194,21 @@ root.update()  # get window dimensiosn
 root.minsize(root.winfo_width(), root.winfo_height())   # set minimum size of the program window
 # =============================================================================
 
+
+# =============================================================================
+# Set style
+# =============================================================================
+# my_style = ttb.Style()
+# my_style.configure('success.TButton', font = ('Arial',  12))
+
+# =============================================================================
+
+
 # =============================================================================
 # define frames
 # =============================================================================
-ctrl_frame = ttb.Labelframe(root,text='Control')
-output_frame = ttb.Labelframe(root, text = 'Output')
+ctrl_frame = ttb.Labelframe(root)
+output_frame = ttb.Labelframe(root)
 
 # ctrl_frame = ScrolledFrame(root, autohide = False)
 # output_frame = ScrolledFrame(root, autohide = False)
@@ -263,7 +276,7 @@ chk_export_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle'
 
 
 
-chk_obj_detect_each_frame = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Obj det in each frame', variable = obj_det)
+chk_obj_detect_each_frame = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'OD in each frame', variable = obj_det)
 chk_sm_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Smooth data', variable = sm_data, command = limit_input)
 
 
@@ -322,12 +335,13 @@ ent_sv_order.configure(state ='disabled')
 
 
 
+bt_run = ttb.Button(ctrl_frame, text = 'Run', bootstyle = 'success', command = run_backend, )
 
 bt1 = ttb.Button(output_frame, text = 'Print', bootstyle = 'info', command = print_values)
 
-bt2 = ttb.Button(output_frame, text = 'Run', bootstyle = 'success', command = run_backend)
 
-bt3 = ttb.Button(output_frame, text = 'Quit', bootstyle = 'danger', command = quit_program)
+
+bt_quit = ttb.Button(output_frame, text = 'Quit', bootstyle = 'danger', command = quit_program)
 
 
 
@@ -349,65 +363,156 @@ bt3 = ttb.Button(output_frame, text = 'Quit', bootstyle = 'danger', command = qu
 # chk_obj_detect_each_frame.grid(row = 3, column = 2, padx = 10, pady = 10)
 # chk_smooth_data.grid(row = 4, column = 1, padx = 10, pady = 10)
 
-ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 10, fill = 'x')
-lbl_block_size.pack(anchor='w',padx = 20)
-ent_block_size.pack(anchor='w', padx = 20,pady = 1)
-ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 10, fill = 'x')
+# lbl_block_size.pack(anchor='w',padx = 20)
+# ent_block_size.pack(anchor='w', padx = 20,pady = 1)
+# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
 
 
-lbl_dt.pack(anchor='w',padx = 20)
-ent_dt.pack(anchor='w', padx = 20,pady = 1)
-ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+# lbl_dt.pack(anchor='w',padx = 20)
+# ent_dt.pack(anchor='w', padx = 20,pady = 1)
+# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
 
 
 
-lbl_blur_order.pack(anchor='w', padx = 20)
-spn_blur_order.pack(anchor='w', padx = 20,pady = 1)
-ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+# lbl_blur_order.pack(anchor='w', padx = 20)
+# spn_blur_order.pack(anchor='w', padx = 20,pady = 1)
+# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
 
 
-lbl_th_type.pack(anchor='w', padx = 20)
-spn_th_type.pack(anchor='w', padx = 20,pady = 1)
-ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+# lbl_th_type.pack(anchor='w', padx = 20)
+# spn_th_type.pack(anchor='w', padx = 20,pady = 1)
+# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
 
 
-ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
+# ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
                     
-chk_export_data.pack(padx = 20,anchor = 'w')
-chk_obj_detect_each_frame.pack(padx = 20,anchor = 'w')
-chk_sm_data.pack(padx = 20,anchor = 'w')
+# chk_export_data.pack(padx = 20,anchor = 'w')
+# chk_obj_detect_each_frame.pack(padx = 20,anchor = 'w')
+# chk_sm_data.pack(padx = 20,anchor = 'w')
 
 
-ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
+# ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
 
-mtr_th.pack(pady = 30, anchor='w', padx = 10)
-ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-mtr_adth.pack(anchor='w', padx = 10)
-ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-mtr_obth.pack(anchor='w', padx = 10)
-
-
-lbl_sv_window.pack(anchor='w',padx = 20)
-ent_sv_window.pack(anchor='w', padx = 20,pady = 1)
-lbl_sv_order.pack(anchor='w',padx = 20)
-ent_sv_order.pack(anchor='w', padx = 20,pady = 1)
+# mtr_th.pack(pady = 30, anchor='w', padx = 10)
+# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+# mtr_adth.pack(anchor='w', padx = 10)
+# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
+# mtr_obth.pack(anchor='w', padx = 10)
 
 
-lbl_dpi.pack(anchor='w', padx = 20)
-spn_dpi.pack(anchor='w', padx = 20,pady = 1)
+# lbl_sv_window.pack(anchor='w',padx = 20)
+# ent_sv_window.pack(anchor='w', padx = 20,pady = 1)
+# lbl_sv_order.pack(anchor='w',padx = 20)
+# ent_sv_order.pack(anchor='w', padx = 20,pady = 1)
 
 
-bt2.pack(padx = 10, pady = 20)
-bt1.pack(padx = 10, pady = 20)
-bt3.pack(anchor = 's', padx = 10, pady = 20)
+# lbl_dpi.pack(anchor='w', padx = 20)
+# spn_dpi.pack(anchor='w', padx = 20,pady = 1)
 
 
-
+# bt2.pack(padx = 10, pady = 20)
+# bt1.pack(padx = 10, pady = 20)
+# bt3.pack(anchor = 's', padx = 10, pady = 20)
 
 
 
+# =============================================================================
+# Grid layout
+# =============================================================================
+
+# =============================================================================
+# Ctrl_frame fill
+# =============================================================================
+ctrl_frame.columnconfigure(0, weight = 1)
+ctrl_frame.columnconfigure(1, weight = 1)
+ctrl_frame.rowconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), weight = 1)
+ctrl_frame.rowconfigure(17, weight = 1000)   # this will stay an empty row. The large height will pack the other rows tight..
 
 
+
+count = 1
+
+lbl_th_type.grid(row=count, column = 0, sticky = 'nw', padx = 10)
+lbl_dt.grid(row=count, column = 1, sticky = 'nw', padx = 10)
+count = count + 1
+
+spn_th_type.grid(row=count, column = 0, sticky = 'nw', padx = 10)
+ent_dt.grid(row=count, column = 1, sticky = 'nw', padx = 10)
+count = count + 1
+
+lbl_blur_order.grid(row=count, column = 0, sticky = 'nw', padx = 10)
+lbl_block_size.grid(row=count, column = 1, sticky = 'nw', padx = 10)
+count = count + 1
+
+spn_blur_order.grid(row=count, column = 0, sticky = 'nw', padx = 10)
+ent_block_size.grid(row=count, column = 1, sticky = 'nw', padx = 10)
+count = count + 1
+
+
+chk_obj_detect_each_frame.grid(row = count, column = 0, padx = 10, pady = 10)
+chk_export_data.grid(row = count, column = 1, padx = 10, pady = 10)
+count = count + 1
+
+ttb.Separator(ctrl_frame, bootstyle='secondary').grid(row=count, column = 0, columnspan=2, pady = 10, sticky = 'nsew')
+count = count + 1
+
+# middle block with meters
+mtr_th.grid(row = count, column = 0, padx = 10, pady = 10)
+mtr_adth.grid(row = count, column = 1, padx = 10, pady = 10)
+count = count + 1
+
+mtr_obth.grid(row = count, column = 0, padx = 10, pady = 10)
+count = count + 1
+
+ttb.Separator(ctrl_frame, bootstyle='secondary').grid(row=count, column = 0, columnspan=2, pady = 10, sticky = 'nsew')
+count = count + 1
+
+
+
+
+# smooth data block
+chk_sm_data.grid(row=count, column = 0, sticky = 'nw', padx = 10)
+count = count + 1
+
+lbl_sv_window.grid(row=count, column = 0, sticky = 'nw', padx = 10)
+lbl_sv_order.grid(row=count, column = 1, sticky = 'nw', padx = 10)
+count = count + 1
+
+ent_sv_window.grid(row=count, column = 0, sticky = 'nw', padx = 10)
+ent_sv_order.grid(row=count, column = 1, sticky = 'nw', padx = 10)
+count = count + 1
+
+ttb.Separator(ctrl_frame, bootstyle='secondary').grid(row=count, column = 0, columnspan=2, pady = 10, sticky = 'nsew')
+count = count + 1
+
+# last block
+
+lbl_dpi.grid(row = count, column = 0, sticky = 'nw', padx = 10)
+bt_run.grid(row = count, column  = 1, rowspan = 3, sticky = 'nsew',padx = 10)
+
+count = count + 1
+
+
+spn_dpi.grid(row = count, column = 0, sticky = 'nw', padx = 10)
+count = count + 1
+
+ttb.Separator(ctrl_frame, bootstyle='secondary').grid(row=count, column = 0, pady = 10, sticky = 'nsew')
+
+# =============================================================================
+
+
+
+# =============================================================================
+# Output frame fill
+# =============================================================================
+
+output_frame.columnconfigure((0,1,2), weight = 1)
+output_frame.rowconfigure(0, weight = 1)
+output_frame.rowconfigure(1, weight = 20)
+output_frame.rowconfigure(2, weight = 1)
+
+bt_quit.grid(row = 2, column =1, sticky = 'nw', pady= 10)
 
 root.protocol("WM_DELETE_WINDOW", lambda: (root.quit(), root.destroy()))
 

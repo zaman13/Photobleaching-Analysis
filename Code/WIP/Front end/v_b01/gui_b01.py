@@ -556,7 +556,7 @@ spn_img.configure(state = 'disabled')
 
 # =============================================================================
 
-img_place_holder = ttb.PhotoImage(file = 'place_holder.png')
+img_place_holder = ttb.PhotoImage(file = 'logoM_80px.png')
 # img_list = [ttb.PhotoImage(file = ifname1), ttb.PhotoImage(file = ifname2), ttb.PhotoImage(file = ifname3), ttb.PhotoImage(file = ifname4)]
 
 # demo_media = demo_media.subsample(2,2)
