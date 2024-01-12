@@ -39,6 +39,10 @@ from ttkbootstrap.dialogs import Messagebox
 from tkinter.filedialog import askopenfile 
 
 
+from tkinterdnd2 import DND_FILES, TkinterDnD
+from tkinterdnd2.TkinterDnD import _require
+
+
 # from ttkbootstrap.scrolled import ScrolledFrame
 
 
@@ -113,6 +117,40 @@ def open_file():
         
         bt_run.config(state = 'enabled')  # Enables the run button
 # =============================================================================    
+
+
+# =============================================================================    
+# Drag and drop function
+# =============================================================================    
+def drag_drp(e):
+    global path   # global variable that contains the path of file 1
+    global ifname_list
+    global lbl_path
+    
+    st = str(e.data)   # get drag n drop event data and assign it to a string        
+    
+    # replace curly brackets (if any). These braces seem to show up on when the file path has space character.
+    st = st.replace('{','')
+    st = st.replace('}','')
+    
+    path = st  # feed the cleaned string data in path1 global variable
+        
+    ent_dnd.delete(0,'end')      # remove old text from the DND box
+    ent_dnd.insert(ttb.END, st)  # insert new text in the DND box
+   
+    
+    lbl_path.config(text = 'File = ' + path)   # Label of the file name which will be displayed in the output window.
+    
+    print('Selected file path = %s' %path)
+    
+    # the file names of the image files saved by the backend code. We will display these images in the output window of the front end
+    # note that the file name structure is determined by the backend. 
+    ifname_list = [path[0:-3] + 'normalized_rate.png', path[0:-3] + 'rate.png', path[0:-3] + 'after_masking.png',   path[0:-3] + 'test_frame.png']
+    
+    bt_run.config(state = 'enabled')  # Enables the run button
+
+# =============================================================================    
+
 
 
 
@@ -263,6 +301,9 @@ def limit_input():
 
 
 
+
+
+
 # =============================================================================
 # run backend with parameter values from the widget. Calls show_plot() function
 # =============================================================================
@@ -351,10 +392,10 @@ def run_backend():
 # =============================================================================
 #control variables
 # =============================================================================
-window_width = 800
-window_height = 640    
-posx = window_width/2   # x position of the window
-posy = window_height/2  # y position of the window
+window_width = 1220
+window_height = 940    
+posx = window_width/8   # x position of the window
+posy = window_height/20  # y position of the window
 
 ctrl_width_fraction = 3/8   # what fraction of the total window is the ctrl_frame
 top_frame_height = 100
@@ -371,6 +412,7 @@ bottom_frame_height = 50
 
 root = ttb.Window(themename="sandstone")    # set root windows and theme
 # root = ttb.Window(themename="superhero")
+_require(root)  # for drag and drop support
 
 root.title('PhotoBleach: Analysis from TIF image stack')    # Set title of the root frame
 root.geometry(("%dx%d+%d+%d" % (window_width, window_height, posx, posy)))
@@ -432,7 +474,7 @@ sm_data = ttb.BooleanVar(value = False)      # set default to be false
 # Defining top frame entries: logo and version info
 # =============================================================================
 # Label with version number
-lbl_version = ttb.Label(top_frame, text = 'Version b_0.2 \nDec. 2023', bootstyle = 'secondary')
+lbl_version = ttb.Label(top_frame, text = 'Mohammad Asif Zaman \nVersion b_0.3 \nJan. 2024', bootstyle = 'secondary', font = ('Arial',6))
 
 img_logoM = ttb.PhotoImage(file = 'logoM_80px.png')
 lbl_logoM = ttb.Label(top_frame,  image = img_logoM)
@@ -485,9 +527,9 @@ chk_sm_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', te
 mtr_th = ttb.Meter(ctrl_frame, bootstyle = 'secondary', 
                     subtext = 'Simp. Th',
                     interactive = False,
-                    stripethickness=10,
-                    meterthickness=8,
-                    metersize = 120,
+                    stripethickness=8,
+                    meterthickness=6,
+                    metersize = 110,
                     amounttotal = 100,
                     amountused = 80,
                     textright = '%',
@@ -497,9 +539,9 @@ mtr_th = ttb.Meter(ctrl_frame, bootstyle = 'secondary',
 mtr_adth = ttb.Meter(ctrl_frame, bootstyle = 'danger', 
                     subtext = 'Adpt.Th',
                     interactive = True,
-                    stripethickness=10,
-                    meterthickness=8,
-                    metersize = 120,
+                    stripethickness=8,
+                    meterthickness=6,
+                    metersize = 110,
                     amounttotal = 100,
                     amountused = 20,
                     textright = '%',
@@ -509,9 +551,9 @@ mtr_adth = ttb.Meter(ctrl_frame, bootstyle = 'danger',
 mtr_obth = ttb.Meter(ctrl_frame, bootstyle = 'warning', 
                     subtext = 'Obj. size Th',
                     interactive = True,
-                    stripethickness=10,
-                    meterthickness=8,
-                    metersize = 120,
+                    stripethickness=8,
+                    meterthickness=6,
+                    metersize = 110,
                     amounttotal = 50,
                     amountused = 10,
                     textright = '%',
@@ -543,10 +585,21 @@ spn_dpi.configure(state = 'readonly')
 
 # Command buttons in the ctrl frame: run, browse, info. Only the browse button has a separate label
 bt_run = ttb.Button(ctrl_frame, text = 'Run', bootstyle = 'success', command = run_backend, state= 'disabled')
-bt_info = ttb.Button(ctrl_frame, text = 'Info/Help', bootstyle = 'info', command = show_info)
+bt_info = ttb.Button(top_frame, text = 'Info/Help', bootstyle = 'warning', command = show_info)
 bt_browse = ttb.Button(ctrl_frame, text = 'Browse', bootstyle = 'primary', command = open_file)
 lbl_browse = ttb.Label(ctrl_frame, text = 'Open file', bootstyle = 'primary')
+
+
+ent_dnd = ttb.Entry(ctrl_frame, bootstyle = 'primary')
+ent_dnd.drop_target_register(DND_FILES)
+ent_dnd.dnd_bind('<<Drop>>', drag_drp)
+lbl_dnd = ttb.Label(ctrl_frame, text = 'Drag and drop here', bootstyle = 'primary')
+
+
+
 # =============================================================================
+
+
 
 
 
@@ -600,8 +653,12 @@ ctrl_frame.rowconfigure(25, weight = 1000)   # this will stay an empty row. The 
 
 count = 0
 lbl_browse.grid(row = count, column = 0, stick = 'nw', padx = 10)
+lbl_dnd.grid(row = count, column = 1, stick = 'nw', padx = 10)
+
 count = count + 1
-bt_browse.grid(row = count, column = 0, stick = 'nw', padx = 10)
+ent_dnd.grid(row = count, column = 0, columnspan = 2,  stick = 'nse', padx = 10, ipady = 20, ipadx = 20)
+bt_browse.grid(row = count, column = 0, stick = 'nw', padx = 10, ipady = 20, ipadx = 20)
+count = count + 1
 count = count + 1
 ttb.Separator(ctrl_frame, bootstyle='secondary').grid(row=count, column = 0, columnspan=2, pady = 10, sticky = 'nsew')
 count = count + 1
@@ -636,7 +693,7 @@ mtr_adth.grid(row = count, column = 1, padx = 10, pady = 10)
 count = count + 1
 
 mtr_obth.grid(row = count, column = 0, padx = 10, pady = 10)
-bt_info.grid(row = count, column = 1, padx = 10, pady = 10)
+# bt_info.grid(row = count, column = 1, padx = 10, pady = 10)
 count = count + 1
 
 ttb.Separator(ctrl_frame, bootstyle='secondary').grid(row=count, column = 0, columnspan=2, pady = 10, sticky = 'nsew')
@@ -703,7 +760,8 @@ spn_img.pack(side = 'left', pady= 10, padx = 10)
 # Top frame fill
 lbl_logoM.pack(side = 'left', pady= 2, padx = 10)
 lbl_version.pack(side = 'left', pady= 0, padx = 0)
-bt_quit.pack(side = 'left',  pady= 0, padx = 30)
+bt_info.pack(side = 'left', pady = 0, padx = 10, ipady = 10)
+bt_quit.pack(side = 'left',  pady= 0, padx = 10, ipady = 10, ipadx = 30)
 # =============================================================================
 
 
