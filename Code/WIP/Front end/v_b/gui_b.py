@@ -4,6 +4,25 @@
 Created on Mon Dec 18 18:18:52 2023
 
 @author: Mohammad Asif Zaman
+
+
+Style note:
+    - The labels corresponding to a disabled entry box/meter have bootstyle of secondary. Everytime something
+      is enabled/disabled, the corresponding label style is configured accordingly. This style
+      should be kept constant in all future modifications.
+
+Things to implement:
+    - Drag and drop box for file input
+    - Work on the backend to work with adaptive8bit
+    - Work on the backend to work with avi files
+
+Version b_0.2:
+    - Removed some unnecessary library imports in the front end
+    - Quit function: try to make it more accurate
+    - Deleted the print_values() function. Also deleted other unused code blocks.
+    - Added number validation check to more entry boxes.
+    
+
 """
 
 # =============================================================================
@@ -26,10 +45,6 @@ from tkinter.filedialog import askopenfile
 
 # =============================================================================
 
-import os
-
-import numpy as np
-
 
 # =============================================================================
 # Import backend
@@ -38,29 +53,43 @@ from ph_bleach_backend_v2_1 import *
 # =============================================================================
 
 
+
+# =============================================================================    
+# Quit program function with confirmation message box
+# =============================================================================    
 def quit_program():
+    # Quit program function with confirmation message box
     
     # create messagebox
     mb_quit = Messagebox.yesno('Do you want to quit PhotoBleach?', 'Quit',parent = output_frame)
     
     if mb_quit == 'Yes':
-        print('Thank you for using the program. Longer strands!')
-        print(output_frame.winfo_width())
-        print(output_frame.winfo_height())
-        print(path) 
+        
+        print('Output frame width = %i' % output_frame.winfo_width())
+        print('Output frame height = %i' % output_frame.winfo_height())
+        print('Path = %s' %  path) 
+        print('\nThank you for using the program. Longer strands!\n')
+        root.quit()     # Added this in vb0.2. Sometimes, the terminal gets stuck when quitting the program. This might help.
         root.destroy()
     else:
         pass
+# =============================================================================    
 
-
+# =============================================================================    
+# populate the output frame
+# =============================================================================    
 def fill_output_frame():
-    
+    # populate the output frame
     lbl_img.grid(row=1,column =0,  sticky = 'nw', padx= 5, pady= 10)
+# =============================================================================    
 
 
 
+
+# =============================================================================    
+# Function for when the browse button is clicked. Assigns path, enables run button, populates ifname_list
+# =============================================================================    
 def open_file():
-        
     # Function for when the browse button is clicked. It assigns the global path variable and populates the global ifname_list list. 
     # Enables run button. Edits the file path label for the output_frame. 
     
@@ -73,24 +102,37 @@ def open_file():
         
         path = file.name
         
-        lbl_path.config(text = 'File = ' + path)
+        lbl_path.config(text = 'File = ' + path)   # Label of the file name which will be displayed in the output window.
         
         
         print('Selected file path = %s' %path)
         
         # the file names of the image files saved by the backend code. We will display these images in the output window of the front end
+        # note that the file name structure is determined by the backend. 
         ifname_list = [path[0:-3] + 'normalized_rate.png', path[0:-3] + 'rate.png', path[0:-3] + 'after_masking.png',   path[0:-3] + 'test_frame.png']
         
-        bt_run.config(state = 'enabled')
+        bt_run.config(state = 'enabled')  # Enables the run button
+# =============================================================================    
 
 
+
+# =============================================================================    
+# Display info when the info button is pressed
+# =============================================================================    
 def show_info():
-    freadme = open('readme.txt').read()
+    # Display info when the info button is pressed
+    # Displays content of the readme.txt file in a messagebox. The txt file needs more work.
+    freadme = open('readme.txt').read()  
     Messagebox.show_info(freadme, 'Information', parent = ctrl_frame) 
+# =============================================================================    
 
 
-        
+
+# =============================================================================    
+# load output images, set the selected output image, and call the fill_output_frame()        
+# =============================================================================    
 def show_plot():
+    # load output images, set the selected output image, and call the fill_output_frame()
     # global lbl_img
     global img_list
     
@@ -114,12 +156,13 @@ def show_plot():
     # !!!! The image list must be recalculated as the images can change everytime we run the program
     # ===============================================================================================
     img_list = []
-    for m_fname in ifname_list:
+    for m_fname in ifname_list:                    #ifname_list is a global variable defineed in the open_file() function
         img_list.append(ttb.PhotoImage(file = m_fname))
     # ===============================================================================================
         
     
     img = Image.open(ifname_list[ind])   # we need this PIL function to get size of the image later
+    
     lbl_img.grid_forget()   # erase existing image
     
     # output_frame.update()   # ! can't use this. update() causes the spinbox to loop inifinitely
@@ -132,106 +175,67 @@ def show_plot():
     print('Scale factor for image resize = %i' % scl)
 
 
-         
+    # Down sample the image to fit within output_frame() frame     
     img_list[ind] = img_list[ind].subsample(scl,scl)   # maybe think about preserving the original image. Saving the scaled image in a new temp variable doesn't work for some reason
-    lbl_img.config(image = img_list[ind])
+    
+    lbl_img.config(image = img_list[ind])   # change the label so that it is associated with the current subsampled image
         
     
     # call funciton to fill all the contents in the output window
     fill_output_frame()
+# =============================================================================    
     
-    
-    
-    # lbl_img.grid(row=1,column =0,  sticky = 'nsew', padx= 5, pady= 10)
-    # lbl_img.config(text = 'in show plot')
-    # lbl_img.config(image = demo_media2)
 
-
-
+# =============================================================================    
+#  # Checks the dt, Block size, savgol window and order entry boxes to make sure that the inputs are numbers (int, float)
+# =============================================================================  
 def validate_number():
+    # Checks the dt, Block size, savgol window and order entry boxes to make sure that the inputs are numbers (int, float)
     flag = 0  # zero means no error
     
     try:
         int(ent_sv_window.get())
     except ValueError:
-        Messagebox.show_error('Failed to run. SVGOL window muyst be an integer', 'Input error', parent = output_frame)
-        flag = 1    
+        Messagebox.show_error('Failed to run. SAVGOL window must be an integer', 'Input error', parent = output_frame)
+        flag = 1    # set flag = 1 to indicate error
     
     try:
         int(ent_sv_order.get())
     except ValueError:
-        Messagebox.show_error('Failed to run. SVGOL order muyst be an integer', 'Input error', parent = output_frame)
-        flag = 1
+        Messagebox.show_error('Failed to run. SAVGOL order must be an integer', 'Input error', parent = output_frame)
+        flag = 1    # set flag = 1 to indicate error
         
-
-     
-    return flag    
-        
-
-    
-        
-
-# debug function. Will be deleted/commented out later
-def print_values():
-    # x2 = np.round(spn_blur_order.get(),2)
-    # x2 = int(spn_blur_order.get())
-    print('printing')
-    print(export_data.get())
-    blur_order = spn_blur_order.get()
-    dpi = spn_dpi.get()
+    try:
+        int(ent_block_size.get())
+    except ValueError:
+        Messagebox.show_error('Failed to run. Block size must be an integer', 'Input error', parent = output_frame)
+        flag = 1    # set flag = 1 to indicate error
+            
+    try:
+        float(ent_dt.get())
+    except ValueError:
+        Messagebox.show_error('Failed to run. Time step must be a number', 'Input error', parent = output_frame)
+        flag = 1    # set flag = 1 to indicate error
   
-    # lb_temp = ttb.Label(output_frame, text = ent_block_size.get())
-    
-    lb_temp = ttb.Label(output_frame, text = 'Threshold type = ' + spn_th_type.get())
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'dt = ' + ent_dt.get())
-    lb_temp.pack()
-    
-    
-    lb_temp = ttb.Label(output_frame, text = 'Blur order = ' + str(blur_order))
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'Block size = ' + ent_block_size.get())
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'Export data = ' + str(export_data.get()))
-    lb_temp.pack()
+        
+  
+    return flag    
+# =============================================================================        
 
-    lb_temp = ttb.Label(output_frame, text = 'Obj detect in each frame = ' + str(obj_det.get()))
-    lb_temp.pack()
     
-    lb_temp = ttb.Label(output_frame, text = 'Smooth data = ' + str(sm_data.get()))
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'Simple threshold = ' + str(mtr_th.amountusedvar.get()))
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'Adaptive threshold = ' + str(mtr_adth.amountusedvar.get()))
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'Object size (radial) threshold = ' + str(mtr_obth.amountusedvar.get()))
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'Fig. dip = ' + str(dpi))
-    lb_temp.pack()
-    
-    lb_temp = ttb.Label(output_frame, text = 'Savgol window = ' + ent_sv_window.get())
-    lb_temp.pack()
-
-    lb_temp = ttb.Label(output_frame, text = 'Savgol order = ' + ent_sv_order.get())
-    lb_temp.pack()
-
-
-
+# =============================================================================        
 # depending on the threshold type, enable/disable some features
+# =============================================================================
 def limit_input():
-    temp = spn_th_type.get()
+    # depending on the threshold type, enable/disable some features
+    temp = spn_th_type.get()   # get the threshold type input from spinbox
+    
+    # if statements for threshold type
     if temp == 'simple':
-        mtr_adth.configure(interactive = False,bootstyle= 'secondary')
-        mtr_th.configure(interactive = True, bootstyle = 'danger')
-        ent_block_size.configure(state = 'disabled')   
-        lbl_block_size.configure(bootstyle = 'secondary')
+        mtr_adth.configure(interactive = False,bootstyle= 'secondary')  # disable adaptive threshold meter input
+        mtr_th.configure(interactive = True, bootstyle = 'danger')      # turn ON simple threshold meter
+        ent_block_size.configure(state = 'disabled')                    # disable block size entry box. This is only valid for adaptive thresholding
+        lbl_block_size.configure(bootstyle = 'secondary')               # change color of the block_size label to indicate the corresponding entry box has been disabled
     
     if temp == 'adaptive16bit':
         mtr_th.configure(interactive = False, bootstyle= 'secondary')
@@ -240,21 +244,30 @@ def limit_input():
         lbl_block_size.configure(bootstyle = 'primary')
         
         
-        
-    if sm_data.get() == False:
+    # if statement for smooth data check box    
+    if sm_data.get() == False:      
+        # if smooth data is not selected, disable the savgol window and order entry boxes
+        # note that along with the entry box disabled, the corresponding labels' colors change to secondary to 
+        # further highlight the disabled status
         ent_sv_order.configure(state = 'disabled')
         ent_sv_window.configure(state = 'disabled')
         lbl_sv_order.configure(bootstyle = 'secondary')
         lbl_sv_window.configure(bootstyle = 'secondary')
     else:
+        # if smooth data is selected, enable the corresponding input buttons
         ent_sv_order.configure(state = 'enabled')
         ent_sv_window.configure(state = 'enabled')
         lbl_sv_order.configure(bootstyle = 'primary')
         lbl_sv_window.configure(bootstyle = 'primary')
+# =============================================================================
 
-# run backend with parameter values from the widget
+
+
+# =============================================================================
+# run backend with parameter values from the widget. Calls show_plot() function
+# =============================================================================
 def run_backend():
-    
+    # run backend with parameter values from the widget. Calls show_plot() function     
     # Dec. 20, 2023: all variables except the path have been connected to the widgets. 
     # Will start with the filedaialog box to for this. Later, will try to move on to drag and drop
     
@@ -275,11 +288,14 @@ def run_backend():
     if validate_number() == 1:
         return 0
     
-    dt = float(ent_dt.get())  #dt = 15/60                  # time interval between images (unit: minutes)
+
     
     # =============================================================================
     # Control parameter
     # =============================================================================
+
+    dt = float(ent_dt.get())  #dt = 15/60                  # time interval between images (unit: minutes)
+        
     exprt_data = export_data.get()           #exprt_data = True                  # Export data to csv file True/False
     obj_detect_each_frame = obj_det.get()    # if True, then object is detected in every frame. 
                                       # if False, then object is detected in the first frame only
@@ -291,13 +307,15 @@ def run_backend():
     
     blur_order = int(spn_blur_order.get())       # blur_order = 5                    # Order of the median blur
     block_size = int(ent_block_size.get())       # block_size = 41                   # block size for adaptive thresholding
-        
-    obj_size_th_factor = float(mtr_obth.amountusedvar.get()/100)**2                  # obj_size_th_factor = 0.1**2       # for composite mask from fragments, size (area) of object to include = max_size * obj_size_th_factor. The square is to convert length to area 
+    
+    # ! Note that the radial object size is converted to area. The backend works with area.    
+    obj_size_th_factor = float(mtr_obth.amountusedvar.get()/100)**2               # obj_size_th_factor = 0.1**2       # for composite mask from fragments, size (area) of object to include = max_size * obj_size_th_factor. The square is to convert length to area 
     th_type = spn_th_type.get()              # th_type = 'adaptive16bit'         # thresholding function
     smooth_data = sm_data.get()              # smooth_data = False                 # Smooth data y/n
     savgol_window = int(ent_sv_window.get()) # savgol_window = 11                # parameters for the smoothing filter
     savgol_order = int(ent_sv_order.get())   # savgol_order = 3                  # parameters for the smoothing filter
     
+    # this one doesn't have a corresponding input button. Does not appear to be necessary at this moment. It's mostly useful for debugging the backend.
     test_img_ind = 0                  # test image frame to plot
     dpi_fig = int(spn_dpi.get())      # dpi_fig  = 600                    # dpi of saved figures
     # =============================================================================
@@ -319,6 +337,10 @@ def run_backend():
     spn_img.configure(state = 'readonly')
     # call function to display output plots
     show_plot()
+# =============================================================================
+
+
+
     
     
 # =============================================================================
@@ -331,10 +353,10 @@ def run_backend():
 # =============================================================================
 window_width = 800
 window_height = 640    
-posx = window_width/2
-posy = window_height/2
+posx = window_width/2   # x position of the window
+posy = window_height/2  # y position of the window
 
-ctrl_width_fraction = 3/8 
+ctrl_width_fraction = 3/8   # what fraction of the total window is the ctrl_frame
 top_frame_height = 100
 bottom_frame_height = 50
 
@@ -347,10 +369,10 @@ bottom_frame_height = 50
 # =============================================================================
 
 
-root = ttb.Window(themename="sandstone")
+root = ttb.Window(themename="sandstone")    # set root windows and theme
 # root = ttb.Window(themename="superhero")
 
-root.title('Photobleaching Analysis from TIF image stack')
+root.title('PhotoBleach: Analysis from TIF image stack')    # Set title of the root frame
 root.geometry(("%dx%d+%d+%d" % (window_width, window_height, posx, posy)))
 
 # Icon not working in linux builds. Work on this later
@@ -376,18 +398,16 @@ root.minsize(root.winfo_width(), root.winfo_height())   # set minimum size of th
 # =============================================================================
 # define frames
 # =============================================================================
+# total 4 frames. 
 ctrl_frame = ttb.Labelframe(root)
 output_frame = ttb.Labelframe(root)
 top_frame = ttb.Frame(root)
 bottom_frame = ttb.Frame(root)
 
-# ctrl_frame = ScrolledFrame(root, autohide = False)
-# output_frame = ScrolledFrame(root, autohide = False)
-
+# place/pack the 4 frames
 ctrl_frame.place(x=0,y=0,relheight=1, width = window_width*ctrl_width_fraction)
 top_frame.place(x=window_width*ctrl_width_fraction, y=0, height = top_frame_height, relwidth = 1 )
 output_frame.place(x=window_width*ctrl_width_fraction,y=top_frame_height, relheight=1, relwidth = 1 )
-# bottom_frame.place(x=window_width*ctrl_width_fraction, height = bottom_frame_height, relwidth = 1 )
 bottom_frame.pack(side= 'bottom',anchor = 'e')
 
 # =============================================================================
@@ -396,52 +416,36 @@ bottom_frame.pack(side= 'bottom',anchor = 'e')
 # =============================================================================
 # Super global variable
 # =============================================================================
-path = ''    # Start with an empty string. This will be filled when browse button is clicked.
+path = ''    # Start with an empty string. This will be filled when browse button is clicked. Populated in open_file() function.
 # =============================================================================
 
 
 # =============================================================================
-# Define variables
+# Define variables for the checkboxes
 # =============================================================================
-export_data = ttb.BooleanVar(value = True)
-obj_det = ttb.BooleanVar(value = False)
-sm_data = ttb.BooleanVar(value = False)
+export_data = ttb.BooleanVar(value = True)   # set default to be be true
+obj_det = ttb.BooleanVar(value = False)      # set default to be false
+sm_data = ttb.BooleanVar(value = False)      # set default to be false
+# =============================================================================
+
+# =============================================================================
+# Defining top frame entries: logo and version info
+# =============================================================================
+# Label with version number
+lbl_version = ttb.Label(top_frame, text = 'Version b_0.2 \nDec. 2023', bootstyle = 'secondary')
+
+img_logoM = ttb.PhotoImage(file = 'logoM_80px.png')
+lbl_logoM = ttb.Label(top_frame,  image = img_logoM)
+
+bt_quit = ttb.Button(top_frame, text = 'Quit', bootstyle = 'danger', command = quit_program)
 # =============================================================================
 
 
-lbl_version = ttb.Label(top_frame, text = 'Version b_0.1 \nDec. 2023', bootstyle = 'secondary')
+# =============================================================================
+# Defining entries of the control frame
+# =============================================================================
 
-
-# Label+Entry pair
-lbl_block_size= ttb.Label(ctrl_frame,text = 'Block size', bootstyle = 'primary')
-ent_block_size = ttb.Entry(ctrl_frame, bootstyle = 'primary')
-
-# ent2.delete(0,ttb.END)
-ent_block_size.insert(0,41)
-
-
-# Label+Entry pair
-lbl_dt= ttb.Label(ctrl_frame,text = 'Time step (min)', bootstyle = 'primary')
-ent_dt = ttb.Entry(ctrl_frame, bootstyle = 'primary')
-
-# ent2.delete(0,ttb.END)
-ent_dt.insert(0,0.25)
-
-# 
-# lbl_block_size.pack(side='left', pady = 20)
-# ent_block_size.pack(side='left', padx = 10)
-
-# lbl_block_size.pack(anchor ='nw',padx = 20)
-# ent_block_size.pack(anchor='w', padx = 90)
-
-
-
-# Label+Entry pair
-lbl_blur_order= ttb.Label(ctrl_frame,text = 'Blur order', bootstyle = 'primary')
-spn_blur_order = ttb.Spinbox(ctrl_frame, bootstyle = 'primary', from_=3, to = 5, increment=2, width = 17, wrap = True)
-spn_blur_order.insert(0,5)
-spn_blur_order.configure(state = 'readonly')
-
+# Label+Spinbox pair: Threshold type
 lbl_th_type = ttb.Label(ctrl_frame,text = 'Threshold type', bootstyle = 'primary')
 spn_th_type  = ttb.Spinbox(ctrl_frame, bootstyle= 'primary',
                            values = ['simple', 'adaptive16bit'], state= 'readonly',
@@ -449,17 +453,35 @@ spn_th_type  = ttb.Spinbox(ctrl_frame, bootstyle= 'primary',
                            command = limit_input,
                            )
 spn_th_type.set('adaptive16bit')
+# Label+Entry pair: Time step
+lbl_dt= ttb.Label(ctrl_frame,text = 'Time step (min)', bootstyle = 'primary')
+ent_dt = ttb.Entry(ctrl_frame, bootstyle = 'primary')
 
-# Label + checkboxes
-# lbl_export_data= ttb.Label(ctrl_frame,text = 'Export Data', bootstyle = 'primary')
-chk_export_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Export data', variable = export_data)
+ent_dt.insert(0,0.25) # default value set
 
 
 
+# Label+Spinbox pair: Blur order
+lbl_blur_order= ttb.Label(ctrl_frame,text = 'Blur order', bootstyle = 'primary')
+spn_blur_order = ttb.Spinbox(ctrl_frame, bootstyle = 'primary', from_=3, to = 5, increment=2, width = 17, wrap = True)
+spn_blur_order.insert(0,5)   # set default value
+spn_blur_order.configure(state = 'readonly')  # set as readonly
+
+# Label+Entry pair: Block size
+lbl_block_size= ttb.Label(ctrl_frame,text = 'Block size', bootstyle = 'primary')
+ent_block_size = ttb.Entry(ctrl_frame, bootstyle = 'primary')
+
+ent_block_size.insert(0,41) # default value set
+
+
+
+# Checkboxes
 chk_obj_detect_each_frame = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'OD in each frame', variable = obj_det)
+chk_export_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Export data', variable = export_data)
 chk_sm_data = ttb.Checkbutton(ctrl_frame, bootstyle = 'primary-round-toggle', text = 'Smooth data', variable = sm_data, command = limit_input)
 
 
+# Meters
 mtr_th = ttb.Meter(ctrl_frame, bootstyle = 'secondary', 
                     subtext = 'Simp. Th',
                     interactive = False,
@@ -496,43 +518,43 @@ mtr_obth = ttb.Meter(ctrl_frame, bootstyle = 'warning',
                     stepsize=1,
                     textfont='-size 10 -weight bold',)
 
+
+
+
+
+# Label+Entry pair: Savgol window
+lbl_sv_window= ttb.Label(ctrl_frame,text = 'Savgol Window', bootstyle = 'secondary')
+ent_sv_window = ttb.Entry(ctrl_frame, bootstyle = 'primary')
+ent_sv_window.insert(0,11)
+ent_sv_window.configure(state ='disabled')
+
+# Label+Entry pair: Savgol order
+lbl_sv_order= ttb.Label(ctrl_frame,text = 'Savgol Order', bootstyle = 'secondary')
+ent_sv_order = ttb.Entry(ctrl_frame, bootstyle = 'primary')
+ent_sv_order.insert(0,3)
+ent_sv_order.configure(state ='disabled')
+
+# Label+Spinbox pair: Fig dpi
 lbl_dpi = ttb.Label(ctrl_frame,  text = 'Fig dpi', bootstyle = 'primary')
 spn_dpi = ttb.Spinbox(ctrl_frame, bootstyle = 'primary', from_=150, to = 600, increment=150, width = 17)
 spn_dpi.insert(0,150)
 spn_dpi.configure(state = 'readonly')
 
 
-lbl_sv_window= ttb.Label(ctrl_frame,text = 'Savgol Window', bootstyle = 'secondary')
-ent_sv_window = ttb.Entry(ctrl_frame, bootstyle = 'primary')
-ent_sv_window.insert(0,11)
-ent_sv_window.configure(state ='disabled')
-
-lbl_sv_order= ttb.Label(ctrl_frame,text = 'Savgol Order', bootstyle = 'secondary')
-ent_sv_order = ttb.Entry(ctrl_frame, bootstyle = 'primary')
-ent_sv_order.insert(0,3)
-ent_sv_order.configure(state ='disabled')
-
-
-
-
+# Command buttons in the ctrl frame: run, browse, info. Only the browse button has a separate label
 bt_run = ttb.Button(ctrl_frame, text = 'Run', bootstyle = 'success', command = run_backend, state= 'disabled')
+bt_info = ttb.Button(ctrl_frame, text = 'Info/Help', bootstyle = 'info', command = show_info)
+bt_browse = ttb.Button(ctrl_frame, text = 'Browse', bootstyle = 'primary', command = open_file)
+lbl_browse = ttb.Label(ctrl_frame, text = 'Open file', bootstyle = 'primary')
+# =============================================================================
 
-bt1 = ttb.Button(output_frame, text = 'Print', bootstyle = 'info', command = print_values)
 
 
-
-bt_quit = ttb.Button(top_frame, text = 'Quit', bootstyle = 'danger', command = quit_program)
-
+# =============================================================================
+# Defining entries of the bottom frame
+# =============================================================================
 
 bt_display = ttb.Button(bottom_frame, text = 'Display/Fit Plots', bootstyle = 'warning', command = show_plot, state = 'disabled')
-
-
-bt_info = ttb.Button(ctrl_frame, text = 'Info/Help', bootstyle = 'info', command = show_info)
-
-lbl_browse = ttb.Label(ctrl_frame, text = 'Open file', bootstyle = 'primary')
-lbl_path = ttb.Label(output_frame, text = '', bootstyle = 'secondary')     # this label will be populated by the path once file is selected
-
-bt_browse = ttb.Button(ctrl_frame, text = 'Browse', bootstyle = 'primary', command = open_file)
 bt_browse_bottom = ttb.Button(bottom_frame, text = 'Browse', bootstyle = 'primary', command = open_file)
 
 spn_img  = ttb.Spinbox(bottom_frame, bootstyle= 'primary',
@@ -545,102 +567,24 @@ spn_img.insert(0,'Norm Rate')
 spn_img.configure(state = 'disabled')
 
 # =============================================================================
-# Handle images
-# =============================================================================
-# these paths will be obtained from file Browse input later
-# path_dir = '/home/asif/Photobleach_data/'   # directory where the data files are
-# fname = 'M_15s.tif'
-# path = path_dir + fname
+
+
 
 # =============================================================================
-
+# Defining entries of the output frame
 # =============================================================================
 
-img_place_holder = ttb.PhotoImage(file = 'logoM_80px.png')
-# img_list = [ttb.PhotoImage(file = ifname1), ttb.PhotoImage(file = ifname2), ttb.PhotoImage(file = ifname3), ttb.PhotoImage(file = ifname4)]
-
-# demo_media = demo_media.subsample(2,2)
+img_place_holder = ttb.PhotoImage(file = 'place_holder.png')
+lbl_path = ttb.Label(output_frame, text = '', bootstyle = 'secondary')     # this label will be populated by the path once file is selected
 lbl_img = ttb.Label(output_frame,  image = img_place_holder)
 
-img_logoM = ttb.PhotoImage(file = 'logoM_80px.png')
-lbl_logoM = ttb.Label(top_frame,  image = img_logoM)
 
 
 
 
 
 # =============================================================================
-# packing
-# =============================================================================
-
-
-# lbl_block_size.grid(row = 1, column = 1, padx = 10, pady = 10)
-# ent_block_size.grid(row = 1, column = 2, padx = 10, pady = 10)
-
-
-# lbl_blur_order.grid(row = 2, column = 1, padx = 10, pady = 10)
-# spn_blur_order.grid(row = 2, column = 2, padx = 10, pady = 10)
-
-# chk_export_data.grid(row = 3, column = 1, padx = 10, pady = 10)
-# chk_obj_detect_each_frame.grid(row = 3, column = 2, padx = 10, pady = 10)
-# chk_smooth_data.grid(row = 4, column = 1, padx = 10, pady = 10)
-
-# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 10, fill = 'x')
-# lbl_block_size.pack(anchor='w',padx = 20)
-# ent_block_size.pack(anchor='w', padx = 20,pady = 1)
-# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-
-
-# lbl_dt.pack(anchor='w',padx = 20)
-# ent_dt.pack(anchor='w', padx = 20,pady = 1)
-# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-
-
-
-# lbl_blur_order.pack(anchor='w', padx = 20)
-# spn_blur_order.pack(anchor='w', padx = 20,pady = 1)
-# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-
-
-# lbl_th_type.pack(anchor='w', padx = 20)
-# spn_th_type.pack(anchor='w', padx = 20,pady = 1)
-# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-
-
-# ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
-                    
-# chk_export_data.pack(padx = 20,anchor = 'w')
-# chk_obj_detect_each_frame.pack(padx = 20,anchor = 'w')
-# chk_sm_data.pack(padx = 20,anchor = 'w')
-
-
-# ttb.Separator(ctrl_frame, bootstyle='primary').pack(pady = 10, fill = 'x')
-
-# mtr_th.pack(pady = 30, anchor='w', padx = 10)
-# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-# mtr_adth.pack(anchor='w', padx = 10)
-# ttb.Separator(ctrl_frame, bootstyle='info').pack(pady = 5,anchor = 'e')
-# mtr_obth.pack(anchor='w', padx = 10)
-
-
-# lbl_sv_window.pack(anchor='w',padx = 20)
-# ent_sv_window.pack(anchor='w', padx = 20,pady = 1)
-# lbl_sv_order.pack(anchor='w',padx = 20)
-# ent_sv_order.pack(anchor='w', padx = 20,pady = 1)
-
-
-# lbl_dpi.pack(anchor='w', padx = 20)
-# spn_dpi.pack(anchor='w', padx = 20,pady = 1)
-
-
-# bt2.pack(padx = 10, pady = 20)
-# bt1.pack(padx = 10, pady = 20)
-# bt3.pack(anchor = 's', padx = 10, pady = 20)
-
-
-
-# =============================================================================
-# Grid layout
+# Layout (mostly grid)
 # =============================================================================
 
 # =============================================================================
@@ -651,6 +595,8 @@ ctrl_frame.columnconfigure(1, weight = 1)
 ctrl_frame.rowconfigure((0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, 17, 18,19,20,21,22,23,24), weight = 1)
 ctrl_frame.rowconfigure(25, weight = 1000)   # this will stay an empty row. The large height will pack the other rows tight..
 
+
+# the count variable makes it easy to reposition widgets in the frame without having to change grid indices of all following entries
 
 count = 0
 lbl_browse.grid(row = count, column = 0, stick = 'nw', padx = 10)
@@ -715,7 +661,6 @@ ttb.Separator(ctrl_frame, bootstyle='secondary').grid(row=count, column = 0, col
 count = count + 1
 
 # last block
-
 lbl_dpi.grid(row = count, column = 0, sticky = 'nw', padx = 10)
 bt_run.grid(row = count, column  = 1, rowspan = 3, sticky = 'nsew',padx = 10)
 
@@ -738,18 +683,11 @@ print('Ctrl frame total rows = %i' % count)
 # Output frame fill
 # =============================================================================
 
-# output_frame.columnconfigure((0,1,2), weight = 1)
-# output_frame.rowconfigure((0,1), weight = 1)
 output_frame.rowconfigure(0, weight = 1)
 output_frame.rowconfigure(1, weight = 100)
-
 lbl_path.grid(row = 0, column = 0, stick = 'nw', padx = 10)
 
-# lbl_img.grid(row=1,column =0,  sticky = 'nsew', padx= 5, pady= 10)
-# fill_output_frame()
-
-# bt_quit.grid(row = 2, column =1, sticky = 'nw', pady= 10)
-
+# The output frame image is set in the fill_output_frame() function which is called from the show_plot(). The run_backend() calls show_plot().
 
 
 # =============================================================================
