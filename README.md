@@ -20,6 +20,13 @@ The photobleaching code can process a tiff image stack and detect bright objects
 - Can dynamically adjust the mask every frame to account for object drift
 - Average birghtness of all the detected beads in the frames are calculated
 
+## Library reuirements
+- OpenCV
+- Matplotlib
+- NumPy
+- tkinter/ttkbootstrap
+
+
 ## Photobleaching:
 
 The following figure shows the average fluorescence intensity vs time plot. A time series image set containing multiple beads is used as the input data. 
@@ -27,6 +34,8 @@ The following figure shows the average fluorescence intensity vs time plot. A ti
   <img src="https://github.com/zaman13/Photobleaching-Analysis/blob/main/Sample%20output/K_15s.rate.png" alt="alt text" width="600">
    <img src="https://github.com/zaman13/Photobleaching-Analysis/blob/main/Sample%20output/K_15s.normalized_rate.png" alt="alt text" width="600">
 
+
+  
 
 ## Acknowledgement
 This work was developed at the Hesselink research lab, Stanford University. The work was partially supported by the National Institute of Health (NIH) Grant R01GM138716 and 5R21HG009758.
