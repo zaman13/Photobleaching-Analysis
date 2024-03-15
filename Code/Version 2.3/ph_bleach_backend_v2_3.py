@@ -481,7 +481,8 @@ def main_run(path, dt, t_final, exprt_data, obj_detect_each_frame, th_factor, me
     # py.figure(dpi=1200)               # Set this dpi when saving figure. Turn OFF if screen display causes issue
     py.plot(t,mean_store,'.',label='Bead intensity raw data',markersize = 4)
     py.plot(t,sm_data,'r',label='Bead intensity curve')
-    py.plot(t, np.ones(len(t))*bck,'k--', label = 'background level')
+    # py.plot(t, np.ones(len(t))*bck,'k--', label = 'background level')
+    py.plot(t, bck_mean,'k--', label = 'background level')
     
     
     
